@@ -1,5 +1,4 @@
-#### Project Description:
-    Dynamic Software Integration Test Suite around centralized production tool library
+#### Project Description: Dynamic Software Integration Test Suite around centralized production tool library
 #### Project Creator: Nathan Cronk
 #### Supervising Professor: Dr. Eugene Wallingford
 #### Purpose: CS 4800 and further implementation at John Deere
