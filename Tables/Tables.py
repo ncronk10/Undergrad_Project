@@ -1,16 +1,10 @@
 # Databricks notebook source
 # DBTITLE 1,Players Table
-players = spark.table('default.players').withColumnRenamed('_id','player_id')
+players = spark.table('default.players').withColumnRenamed('_id','player_id').dropna()
 #display(players)
 
 # COMMAND ----------
 
 # DBTITLE 1,Salaries Table
-salaries = spark.table('default.salaries')
+salaries = spark.table('default.salaries').dropna()
 #display(salaries)
-
-# COMMAND ----------
-
-# DBTITLE 1,Master Table
-master = players.join(salaries,['player_id'], how='left')
-#display(master)

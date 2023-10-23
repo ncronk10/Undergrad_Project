@@ -9,9 +9,13 @@ from pyspark.sql.types import ArrayType, FloatType, StringType, IntegerType
 
 # COMMAND ----------
 
-def playerCheck(df, playerID: list = [], playerName: list = [], position: list = [], height: list = [], weight: list = [], college: list = [], draftTeam: list = [], draftRound: list = [], draftPick: list = [], draftYear: list =[]):
+# DBTITLE 1,PlayerCheck 
+def playerCheck(playerID: list = [], playerName: list = [], position: list = [], height: list = [], weight: list = [], college: list = [], draftTeam: list = [], draftRound: list = [], draftPick: list = [], draftYear: list =[]):
 
-    df = (spark.read.table('default.players').select('_id','name','position','height','weight','college','draft_team','draft_round','draft_pick','draft_year').withColumnRenamed('_id','player_id'))
+    df = (spark.read.table('default.players')
+          .withColumnRenamed('_id','player_id')
+          .select('player_id','name','position','height','weight','college','draft_team','draft_round','draft_pick','draft_year')
+          .dropna())
     
     try:
         if playerID:
@@ -52,8 +56,42 @@ def playerCheck(df, playerID: list = [], playerName: list = [], position: list =
 
 # COMMAND ----------
 
-df = players
+# DBTITLE 1,topSalary
+#Create a function that takes in a dataframe, round, pick, top x% of players based on salary and returns them
+def topSalary(draftRound: list=[], draftPick: list=[]):
+
+    players = spark.read.table('default.players').withColumnRenamed('_id','player_id').dropna()
+    salaries = spark.read.table('default.salaries').withColumnRenamed('_id','player_id').dropna()
+
+    master = (players.join(salaries, ['player_id'], how='left')
+              .withColumnRenamed('_id','player_id')
+              .dropna())
+    masterDF = (master
+                .select('player_id', 'name', 'height', 'weight', 'college', 'draft_team', 'draft_round', 'draft_pick', 'draft_year', 'salary')
+                .withColumn('yearly_average',F.col('salary')/4))
+
+    #df = playerCheck(df)
+    try: 
+        if draftRound:
+            df = masterDF.where(F.col('draft_round').isin(draftRound))
+
+        if draftPick:
+            df = masterDF.where(F.col('draft_pick').isin(draftPick))  
+    except: 
+        
+        print("The input given to the function was not valid. Please try again.")
+
+    return df.orderBy(F.col('salary').desc())     
+
+# COMMAND ----------
+
+#df = playerCheck(draftRound=['1st round'], college=["Duke University"])
 #display(df)
+
+# COMMAND ----------
+
+d2 = topSalary(draftRound=["1st round"])
+display(d2.select('name', 'draft_team', 'salary','yearly_average'))
 
 # COMMAND ----------
 
