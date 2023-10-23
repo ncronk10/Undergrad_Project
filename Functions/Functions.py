@@ -13,13 +13,12 @@ from pyspark.sql.types import ArrayType, FloatType, StringType, IntegerType
 def playerCheck(playerID: list = [], playerName: list = [], position: list = [], height: list = [], weight: list = [], college: list = [], draftTeam: list = [], draftRound: list = [], draftPick: list = [], draftYear: list =[]):
 
     df = (players
-          .withColumnRenamed('_id','player_id')
-          .select('player_id','name','position','height','weight','college','draft_team','draft_round','draft_pick','draft_year')
+          .select('player_Id','name','position','height','weight','college','draft_Team','draft_Round','draft_Pick','draft_Year')
           .dropna())
     
     try:
         if playerID:
-            df = df.where(F.col('player_id').isin(playerID))
+            df = df.where(F.col('player_Id').isin(playerID))
 
         if playerName:
             df = df.where(F.col('name').isin(playerName))
@@ -37,16 +36,16 @@ def playerCheck(playerID: list = [], playerName: list = [], position: list = [],
             df = df.where(F.col('college').isin(college))
         
         if draftTeam:
-            df = df.where(F.col('draft_team').isin(draftTeam))
+            df = df.where(F.col('draft_Team').isin(draftTeam))
 
         if draftRound:
-            df = df.where(F.col('draft_round').isin(draftRound))
+            df = df.where(F.col('draft_Round').isin(draftRound))
 
         if draftPick:
-            df = df.where(F.col('draft_pick').isin(draftPick))
+            df = df.where(F.col('draft_Pick').isin(draftPick))
 
         if draftYear:
-            df = df.where(F.col('draft_year').isin(draftYear))
+            df = df.where(F.col('draft_Year').isin(draftYear))
         
     except:
 
@@ -58,39 +57,43 @@ def playerCheck(playerID: list = [], playerName: list = [], position: list = [],
 
 # DBTITLE 1,topSalary
 #Create a function that takes in a dataframe, round, pick, top x% of players based on salary and returns them
-def topSalary(draftRound: list=[], draftPick: list=[]):
+def topSalary(df, draftRound: list=[], draftPick: list=[]):
 
-    playersDF = players.dropna()
-    salariesDF = salaries.dropna()
+    playersDF = players
+    salariesDF = salaries
 
-    masterDF = (playersDF.join(salariesDF, ['player_id'], how='left')
-              .withColumnRenamed('_id','player_id')
+    fin = playerCheck()
+
+    joinDF = (playersDF.join(salariesDF, ['player_id'], how='left')
+              .withColumnRenamed('_id','player_Id')
+              .select('player_Id', 'salary')
               .dropna()
-              .select('player_id', 'name', 'height', 'weight', 'college', 'draft_team', 'draft_round', 'draft_pick', 'draft_year', 'salary')
-              .withColumn('yearly_average',F.col('salary')/4)
+              .withColumn('yearly_Average',F.col('salary')/4)
               )
+    
+    masterDF= df.join(joinDF, ['player_Id'], how='inner')
 
     #df = playerCheck(df)
     try: 
         if draftRound:
-            df = masterDF.where(F.col('draft_round').isin(draftRound))
+            masterDF = masterDF.where(F.col('draft_Round').isin(draftRound))
 
         if draftPick:
-            df = masterDF.where(F.col('draft_pick').isin(draftPick))  
+            masterDF = masterDF.where(F.col('draft_Pick').isin(draftPick))  
     except: 
         
         print("The input given to the function was not valid. Please try again.")
 
-    return df.orderBy(F.col('salary').desc())
+    return masterDF.orderBy(F.col('salary').desc())
 
 # COMMAND ----------
 
-df = playerCheck(draftRound=['1st round'], college=["Duke University"])
-#display(df)
+playerDF = playerCheck(draftRound=['1st round'])
+display(playerDF)
 
 # COMMAND ----------
 
-d2 = topSalary(draftRound=["1st round"], draftPick=["2nd overall"])
+d2 = topSalary(playerDF)
 display(d2)
 
 # COMMAND ----------
