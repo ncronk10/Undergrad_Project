@@ -1,6 +1,6 @@
 # Databricks notebook source
 import pyspark.sql.functions as F
-from pyspark.sql.functions import concat, col, lit, current_timestamp, current_date, date_add, to_date, when, substring, month, sum, count, trim, unix_timestamp, from_unixtime, to_date, countDistinct, date_sub, array_join, concat_ws, collect_list, pow, first, row_number, date_format
+from pyspark.sql.functions import concat, col, lit, current_timestamp, current_date, date_add, to_date, when, substring, month, sum, count, trim, unix_timestamp, from_unixtime, to_date, countDistinct, date_sub, array_join, concat_ws, collect_list, pow, first, row_number, date_format, split
 from pyspark.sql.types import ArrayType, FloatType, StringType, IntegerType
 
 # COMMAND ----------
@@ -12,7 +12,7 @@ from pyspark.sql.types import ArrayType, FloatType, StringType, IntegerType
 # DBTITLE 1,PlayerCheck 
 def playerCheck(playerID: list = [], playerName: list = [], position: list = [], height: list = [], weight: list = [], college: list = [], draftTeam: list = [], draftRound: list = [], draftPick: list = [], draftYear: list =[]):
 
-    df = (spark.read.table('default.players')
+    df = (players
           .withColumnRenamed('_id','player_id')
           .select('player_id','name','position','height','weight','college','draft_team','draft_round','draft_pick','draft_year')
           .dropna())
@@ -60,15 +60,15 @@ def playerCheck(playerID: list = [], playerName: list = [], position: list = [],
 #Create a function that takes in a dataframe, round, pick, top x% of players based on salary and returns them
 def topSalary(draftRound: list=[], draftPick: list=[]):
 
-    players = spark.read.table('default.players').withColumnRenamed('_id','player_id').dropna()
-    salaries = spark.read.table('default.salaries').withColumnRenamed('_id','player_id').dropna()
+    playersDF = players.dropna()
+    salariesDF = salaries.dropna()
 
-    master = (players.join(salaries, ['player_id'], how='left')
+    masterDF = (playersDF.join(salariesDF, ['player_id'], how='left')
               .withColumnRenamed('_id','player_id')
-              .dropna())
-    masterDF = (master
-                .select('player_id', 'name', 'height', 'weight', 'college', 'draft_team', 'draft_round', 'draft_pick', 'draft_year', 'salary')
-                .withColumn('yearly_average',F.col('salary')/4))
+              .dropna()
+              .select('player_id', 'name', 'height', 'weight', 'college', 'draft_team', 'draft_round', 'draft_pick', 'draft_year', 'salary')
+              .withColumn('yearly_average',F.col('salary')/4)
+              )
 
     #df = playerCheck(df)
     try: 
@@ -81,17 +81,17 @@ def topSalary(draftRound: list=[], draftPick: list=[]):
         
         print("The input given to the function was not valid. Please try again.")
 
-    return df.orderBy(F.col('salary').desc())     
+    return df.orderBy(F.col('salary').desc())
 
 # COMMAND ----------
 
-#df = playerCheck(draftRound=['1st round'], college=["Duke University"])
+df = playerCheck(draftRound=['1st round'], college=["Duke University"])
 #display(df)
 
 # COMMAND ----------
 
-d2 = topSalary(draftRound=["1st round"])
-display(d2.select('name', 'draft_team', 'salary','yearly_average'))
+d2 = topSalary(draftRound=["1st round"], draftPick=["2nd overall"])
+display(d2)
 
 # COMMAND ----------
 
