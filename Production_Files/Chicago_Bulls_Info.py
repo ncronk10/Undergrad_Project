@@ -1,8 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC #### Chicago Bulls Players' Performance Requirements
-# MAGIC 1. Years
-# MAGIC 2. Total Money Spent Per Draft
+# MAGIC ### Chicago Bulls Historical Data
+# MAGIC
 
 # COMMAND ----------
 
@@ -10,9 +9,29 @@
 
 # COMMAND ----------
 
-playerDF = playerCheck(draft_Team=['Chicago Bulls'])
-display(playeDF)
+# DBTITLE 1,Pulling Chicago Bulls Data
+playerDF = playerCheck(draftTeam=["Chicago Bulls"])
 
 # COMMAND ----------
 
+# DBTITLE 1,Area Chart for Team Salary per Year
+teamSalary = teamSalaryPerYear(playerDF)
+display(teamSalary)
 
+# COMMAND ----------
+
+# DBTITLE 1,Area Chart for Average Salary per Year 
+avgSeasonSalary = avgSalaryBySeason(playerDF)
+display(avgSeasonSalary)
+
+# COMMAND ----------
+
+# DBTITLE 1,Data Profile with Statistics for Average Dollars a player makes per game
+avgGameDF = avgDollarsGame(playerDF)
+display(avgGameDF)
+
+# COMMAND ----------
+
+# DBTITLE 1,Area Chart for Average Dollars Made Per Point Scored
+avgPointDF = avgDollarsPoint(playerDF)
+display(avgPointDF)
