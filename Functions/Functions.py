@@ -10,6 +10,7 @@ from pyspark.sql.types import IntegerType
 
 # COMMAND ----------
 
+# DBTITLE 1,Player Table Function
 def playerTable():
 
     playersDF = (spark.table("default.players")
@@ -28,7 +29,7 @@ def playerTable():
         .withColumn("career_FG3%", when(F.col("career_FG3%") == "-", 0.0).otherwise(F.col("career_FG3%").cast("double")))
         .withColumn("career_FT%", when(F.col("career_FT%") == "-", 0.0).otherwise(F.col("career_FT%").cast("double")))
         .withColumn("career_PER", when(F.col("career_PER") == "-", 0.0).otherwise(F.col("career_PER").cast("double")))
-        .drop("career_eFG%")
+        .drop("career_eFG%","highSchool")
         .dropna()
     )
     
@@ -36,6 +37,7 @@ def playerTable():
 
 # COMMAND ----------
 
+# DBTITLE 1,Salary Table Function
 def salaryTable():
 
     salariesDF = (spark.table("default.salaries")
@@ -86,6 +88,7 @@ def position_cleaning():
 
 # COMMAND ----------
 
+# DBTITLE 1,digitExtract Function
 def digitExtract():
     
     position = position_cleaning()
@@ -135,18 +138,22 @@ def playerCheck(playerID: list = [], position: list = [], college: list = [], dr
 
 # COMMAND ----------
 
-# DBTITLE 1,topSalary Function
-def topSalary(df, contract_Length:int=4):
-
-    joinDF = joinTable()
-    joinDF = joinDF.withColumn("yearly_Average", F.col("salary")/contract_Length)
+# DBTITLE 1,Avg Salary per Player (by total salary / total seasons played) 
+def avgPlayerSalary(df): 
     
-    masterDF = df.join(joinDF, ["player_Id"], how='inner')
+    joinDF = joinTable()
 
-    window = Window.partitionBy("player_Id").orderBy(F.col("salary").desc())
-    filterDF = masterDF.withColumn("temp", row_number().over(window)).filter(F.col("temp") == 1).drop("temp")
+    masterDF = joinDF.join(df, ["player_Id"], how="inner")
 
-    return filterDF.orderBy(F.col("salary").desc()).orderBy(F.col("yearly_Average").desc())
+    window = Window.partitionBy("player_Id").orderBy(F.col('season_Start'))
+
+    filterDF = (masterDF.groupBy("player_Id").agg(
+    F.count("season_Start").alias("count_Seasons"),
+    F.sum("salary").alias("sum_Salary")))     
+
+    avgDF = filterDF.withColumn("avg_Salary", F.round(F.col("sum_Salary")/F.col("count_Seasons"), 2))  
+
+    return avgDF.select("player_Id","count_Seasons","avg_Salary").orderBy(F.col("avg_Salary").desc())
 
 # COMMAND ----------
 
@@ -157,28 +164,62 @@ def teamSalaryPerYear(df):
     
     masterDF= joinDF.join(df, ["player_Id"], how="inner")
 
-    window = Window.partitionBy("player_Id").orderBy(F.col("salary").desc())
-    filterDF = masterDF.withColumn("temp", row_number().over(window)).filter(F.col("temp") == 1).drop("temp")
+    result = masterDF.groupBy("draft_Team", "draft_Year").agg(F.sum("salary").alias("total_Salary"))
 
-    result = filterDF.groupBy("draft_Team", "draft_Year").agg(F.sum("salary").alias("total_Salary"))
-
-    return result.orderBy("draft_Year")
+    return result.orderBy(F.col("draft_Year"))
 
 
 # COMMAND ----------
 
-# DBTITLE 1,Avg Salary by Season 
+# DBTITLE 1,Avg Salary per Season by Player
 def avgSalaryBySeason(df): 
 
     joinDF = joinTable()
     
     masterDF= joinDF.join(df, ["player_Id"], how="inner")
 
-    window = Window.partitionBy("player_Id").orderBy(F.col("salary").desc())
-    filterDF = masterDF.withColumn("temp", row_number().over(window)).filter(F.col("temp") == 1).drop("temp")
-
-    result = (filterDF
+    result = (masterDF
               .groupBy("season_Start").agg(F.avg("salary").alias("avg_Salary_YR")))
+    result = result.withColumn("avg_Salary_YR", F.round(F.col("avg_Salary_YR"), 2))
 
     return result.orderBy("season_Start")
 
+
+# COMMAND ----------
+
+# DBTITLE 1,Avg Money Paid per game 
+def avgDollarsGame(df): 
+    joinDF = joinTable()
+
+    masterDF = joinDF.join(df, ["player_Id"], how="inner")
+
+    filterDF = (masterDF.groupBy("player_Id", "career_G")
+            .agg(F.count("season_Start").alias("season_Count")))
+
+    result = filterDF.withColumn("avg_Games", F.round(F.col("career_G")/F.col("season_Count"), 2))  
+
+    result = result.select("player_Id", "avg_Games").orderBy(F.col("avg_Games").desc()) 
+
+    avgSalaryDF = avgPlayerSalary(df)
+
+    resultDF = result.join(avgSalaryDF, ["player_Id"], how="left")
+    resultDF = resultDF.withColumn("avg_salary_per_g", F.round(F.col("avg_Salary")/F.col("avg_Games"), 2))
+
+    return resultDF
+
+# COMMAND ----------
+
+# DBTITLE 1,Avg Dollars Per Point
+def avgDollarsPoint(df): 
+
+    avgDF = avgDollarsGame(df)
+    joinDF = joinTable()
+    joinDF = joinDF.join(df, ["player_Id"],how="left")
+
+    masterDF = avgDF.join(joinDF, ["player_Id"], how="left")
+    dollarsPointDF = masterDF.withColumn("dollars_point", F.round(F.col("avg_salary_per_g")/F.col("career_PTS"), 2))
+
+    avgDollarsPointsDF = dollarsPointDF.groupBy("draft_Year").agg(F.avg(F.col("dollars_point")).alias("avg_dollars_point"))
+    avgDollarsPointsDF = avgDollarsPointsDF.withColumn("avg_dollars_point", F.round(F.col("avg_dollars_point"), 2)).orderBy(F.col("draft_Year").asc())
+
+    return avgDollarsPointsDF
