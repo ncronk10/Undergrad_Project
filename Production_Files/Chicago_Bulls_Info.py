@@ -11,6 +11,7 @@
 
 # DBTITLE 1,Pulling Chicago Bulls Data
 playerDF = playerCheck(draftTeam=["Chicago Bulls"])
+display(playerDF)
 
 # COMMAND ----------
 
