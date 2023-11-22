@@ -1,4 +1,4 @@
-name: Python testing application
+name: pytest-pyspark
 
 on:
   push:
