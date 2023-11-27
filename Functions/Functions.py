@@ -4,10 +4,15 @@
 
 # COMMAND ----------
 
+pip install -U pytest
+
+# COMMAND ----------
+
 import pyspark.sql.functions as F
 
+import pytest
 from pyspark.sql.window import Window
-
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import concat, col, lit, current_timestamp, current_date, date_add, to_date, when, substring, month, sum, count, trim, unix_timestamp, from_unixtime, to_date, countDistinct, date_sub, array_join, concat_ws, collect_list, pow, first, row_number, date_format, split
 
 from datetime import datetime
@@ -50,7 +55,7 @@ def playerTable():
         .withColumn("career_FG3%", when(F.col("career_FG3%") == "-", 0.0).otherwise(F.col("career_FG3%").cast("double")))
         .withColumn("career_FT%", when(F.col("career_FT%") == "-", 0.0).otherwise(F.col("career_FT%").cast("double")))
         .withColumn("career_PER", when(F.col("career_PER") == "-", 0.0).otherwise(F.col("career_PER").cast("double")))
-        .drop("career_eFG%","highSchool")
+        .drop("career_eFG%","highSchool", "shoots")
         .dropna()
     )
     
@@ -244,7 +249,7 @@ def playerCheck(playerID: list = [], position: list = [], college: list = [], dr
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Salary Functions
+# MAGIC # Salary Computation Functions
 
 # COMMAND ----------
 
