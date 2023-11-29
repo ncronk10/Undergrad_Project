@@ -4,19 +4,14 @@
 
 # COMMAND ----------
 
-pip install -U pytest
-
-# COMMAND ----------
-
 import pyspark.sql.functions as F
 
-import pytest
 from pyspark.sql.window import Window
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import concat, col, lit, current_timestamp, current_date, date_add, to_date, when, substring, month, sum, count, trim, unix_timestamp, from_unixtime, to_date, countDistinct, date_sub, array_join, concat_ws, collect_list, pow, first, row_number, date_format, split
 
 from datetime import datetime
-from pyspark.sql.types import IntegerType
+from pyspark.sql.types import IntegerType, StringType, StructField, StructType, DateType, DoubleType
 
 # COMMAND ----------
 
@@ -42,20 +37,18 @@ def playerTable():
     playersDF = (spark.table("default.players")
         .withColumnRenamed("_id","player_Id")
         .withColumnRenamed("name","player_Name")
-        .withColumnRenamed("birthDate", "birth_Date")
-        .withColumnRenamed("birthPlace", "birth_Place")
         .withColumnRenamed("career_AST", "career_Ast")
         .withColumnRenamed("draft_pick", "draft_Pick")
         .withColumnRenamed("draft_round", "draft_Round")
         .withColumnRenamed("draft_team", "draft_Team")
         .withColumnRenamed("draft_year", "draft_Year")
-        .withColumn("draft_Year", F.substring(F.col("draft_Year"), 0,4).cast("date"))
-        .withColumn("draft_Year", F.year("draft_Year"))
-        .withColumn("career_FG%", when(F.col("career_FG%") == "-", 0.0).otherwise(F.col("career_FG%").cast("double")))
-        .withColumn("career_FG3%", when(F.col("career_FG3%") == "-", 0.0).otherwise(F.col("career_FG3%").cast("double")))
-        .withColumn("career_FT%", when(F.col("career_FT%") == "-", 0.0).otherwise(F.col("career_FT%").cast("double")))
-        .withColumn("career_PER", when(F.col("career_PER") == "-", 0.0).otherwise(F.col("career_PER").cast("double")))
-        .drop("career_eFG%","highSchool", "shoots")
+        .withColumn("draft_Year", F.substring(F.col("draft_Year"), 0,4).cast(IntegerType()))
+        .withColumn("career_G", F.col("career_G").cast(IntegerType()))
+        .withColumn("career_TRB", F.col("career_TRB").cast(DoubleType()))
+        .withColumn("career_FG%", when(F.col("career_FG%") == "-", 0.0).otherwise(F.col("career_FG%").cast(DoubleType())))
+        .withColumn("career_FG3%", when(F.col("career_FG3%") == "-", 0.0).otherwise(F.col("career_FG3%").cast(DoubleType())))
+        .withColumn("career_FT%", when(F.col("career_FT%") == "-", 0.0).otherwise(F.col("career_FT%").cast(DoubleType())))
+        .drop("career_eFG%","highSchool", "shoots", "career_WS", "career_PER", "height", "weight", "birthDate", "birthPlace")
         .dropna()
     )
     
@@ -85,6 +78,7 @@ def salaryTable():
             .withColumnRenamed("player_id", "player_Id")
             .withColumnRenamed("season_end", "season_End")
             .withColumnRenamed("season_start", "season_Start")
+            .drop("team", "league", "season")
             .dropna()
     )
 
@@ -182,7 +176,6 @@ def joinTable():
 
     joinDF = (digitDF.join(salariesDF, ["player_id"], how="left")
               .withColumnRenamed("_id","player_Id")
-              .select("player_Id", "salary", "season_Start", "season_End")
               .dropna()
               )
     
@@ -196,15 +189,14 @@ def joinTable():
 # COMMAND ----------
 
 # DBTITLE 1,NBA Player Check
-def playerCheck(playerID: list = [], position: list = [], college: list = [], draftTeam: list = [], draftRound: list = [], draftPick: list = [], draftYear: list =[]):
+def playerCheck(position: list = [], college: list = [], draftTeam: list = [], draftRound: list = [], draftPick: list = [], draftYear: list =[]):
     """
     Author: Nathan Cronk 
 
-    Description: This function allows the user to filter the NBA Players table down to a specific player_Id(s), position(s), college(s), draftTeam(s), draftRound(s), draftPick(s), or draftYear(s). All inputs are optional
+    Description: This function allows the user to filter the NBA Players table down to a specific position(s), college(s), draftTeam(s), draftRound(s), draftPick(s), or draftYear(s). All inputs are optional
     so if none are given, all players, teams, etc. will be in the resulting dataframe
     
     Inputs:
-        - playerId (optional) - ID of a player (primary key)
         - position (optional) - positions of players
         - colleges (optional) - college team where drafted players came from 
         - draftTeam (optional) - newly drafted NBA team 
@@ -219,8 +211,6 @@ def playerCheck(playerID: list = [], position: list = [], college: list = [], dr
     df = digitExtract()
     
     try:
-        if playerID:
-            df = df.where(F.col("player_Id").isin(playerID))
 
         if position:
             df = df.where(F.col("position").isin(position))
@@ -238,13 +228,18 @@ def playerCheck(playerID: list = [], position: list = [], college: list = [], dr
             df = df.where(F.col("draft_Pick").isin(draftPick))
 
         if draftYear:
-            df = df.where(F.col('draft_Year').isin(draftYear))
+            df = df.where(F.col("draft_Year").isin(draftYear))
 
     except:
 
         print("The input given to the function was not valid. Please try again.")
 
     return df 
+
+# COMMAND ----------
+
+df = playerCheck()
+display(df)
 
 # COMMAND ----------
 
@@ -279,7 +274,7 @@ def avgPlayerSalary(df):
 
     avgDF = filterDF.withColumn("avg_Salary", F.round(F.col("sum_Salary")/F.col("count_Seasons"), 2))  
 
-    return avgDF.select("player_Id","count_Seasons","avg_Salary").orderBy(F.col("avg_Salary").desc())
+    return avgDF.select("player_Id","count_Seasons","sum_Salary","avg_Salary").orderBy(F.col("avg_Salary").desc())
 
 # COMMAND ----------
 
@@ -394,3 +389,7 @@ def avgDollarsPoint(df):
     avgDollarsPointsDF = avgDollarsPointsDF.withColumn("avg_dollars_point", F.round(F.col("avg_dollars_point"), 2)).orderBy(F.col("draft_Year").asc())
 
     return avgDollarsPointsDF
+
+# COMMAND ----------
+
+

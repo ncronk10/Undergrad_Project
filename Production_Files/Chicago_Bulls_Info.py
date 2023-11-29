@@ -5,7 +5,7 @@
 
 # COMMAND ----------
 
-# MAGIC %run /Repos/ncronk10@gmail.com/Undergrad_Project/Functions/Functions
+# MAGIC %run /Repos/ncronk10@gmail.com/Undergrad_Project/NBA_Functions
 
 # COMMAND ----------
 
@@ -34,5 +34,5 @@ display(avgGameDF)
 # COMMAND ----------
 
 # DBTITLE 1,Area Chart for Average Dollars Made Per Point Scored
-avgPointDF = avgDollarsPoint(playerDF)
+avgPointDF = avgDollarsPoint(playerDF) #Change draft year to date (year)
 display(avgPointDF)
