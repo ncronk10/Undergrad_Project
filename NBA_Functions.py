@@ -11,7 +11,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import concat, col, lit, current_timestamp, current_date, date_add, to_date, when, substring, month, sum, count, trim, unix_timestamp, from_unixtime, to_date, countDistinct, date_sub, array_join, concat_ws, collect_list, pow, first, row_number, date_format, split
 
 from datetime import datetime
-from pyspark.sql.types import IntegerType, StringType, StructField, StructType, DateType, DoubleType
+from pyspark.sql.types import IntegerType, StringType, StructField, StructType, DateType, DoubleType, LongType 
 
 # COMMAND ----------
 
@@ -238,11 +238,6 @@ def playerCheck(position: list = [], college: list = [], draftTeam: list = [], d
 
 # COMMAND ----------
 
-df = playerCheck()
-display(df)
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC # Salary Computation Functions
 
@@ -268,9 +263,9 @@ def avgPlayerSalary(df):
 
     window = Window.partitionBy("player_Id").orderBy(F.col('season_Start'))
 
-    filterDF = (masterDF.groupBy("player_Id").agg(
-    F.count("season_Start").alias("count_Seasons"),
-    F.sum("salary").alias("sum_Salary")))     
+    filterDF = (masterDF
+                .groupBy("player_Id").agg(F.count("season_Start").alias("count_Seasons"),
+                F.sum("salary").alias("sum_Salary")))     
 
     avgDF = filterDF.withColumn("avg_Salary", F.round(F.col("sum_Salary")/F.col("count_Seasons"), 2))  
 
@@ -294,7 +289,7 @@ def teamSalaryPerYear(df):
 
     joinDF = joinTable()
     
-    masterDF= joinDF.join(df, ["player_Id"], how="inner")
+    masterDF= joinDF.join(df, ["player_Id", "draft_Team", "draft_Year"], how="inner")
 
     totalDF = masterDF.groupBy("draft_Team", "draft_Year").agg(F.sum("salary").alias("total_Salary"))
 
@@ -346,7 +341,7 @@ def avgDollarsGame(df):
     
     joinDF = joinTable()
 
-    masterDF = joinDF.join(df, ["player_Id"], how="inner")
+    masterDF = joinDF.join(df, ["player_Id", "career_G"], how="inner")
 
     filterDF = (masterDF.groupBy("player_Id", "career_G")
             .agg(F.count("season_Start").alias("season_Count")))
@@ -379,17 +374,13 @@ def avgDollarsPoint(df):
     """
     
     avgDF = avgDollarsGame(df)
-    joinDF = joinTable()
-    joinDF = joinDF.join(df, ["player_Id"],how="left")
+    #joinDF = joinTable()
+    #joinDF = joinDF.join(df, ["player_Id"],how="left")
 
-    masterDF = avgDF.join(joinDF, ["player_Id"], how="left")
+    masterDF = avgDF.join(df, ["player_Id"], how="inner")
     dollarsPointDF = masterDF.withColumn("dollars_point", F.round(F.col("avg_salary_per_g")/F.col("career_PTS"), 2))
 
-    avgDollarsPointsDF = dollarsPointDF.groupBy("draft_Year").agg(F.avg(F.col("dollars_point")).alias("avg_dollars_point"))
-    avgDollarsPointsDF = avgDollarsPointsDF.withColumn("avg_dollars_point", F.round(F.col("avg_dollars_point"), 2)).orderBy(F.col("draft_Year").asc())
+    avgDollarsPointsDF = dollarsPointDF.groupBy("draft_Team").agg(F.avg(F.col("dollars_point")).alias("avg_dollars_point"))
+    avgDollarsPointsDF = avgDollarsPointsDF.withColumn("avg_dollars_point", F.round(F.col("avg_dollars_point"), 2)).orderBy(F.col("avg_dollars_point").desc())
 
     return avgDollarsPointsDF
-
-# COMMAND ----------
-
-

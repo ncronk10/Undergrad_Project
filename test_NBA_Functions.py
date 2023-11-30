@@ -28,16 +28,6 @@ from pyspark.sql.types import IntegerType, StringType, StructField, StructType, 
 
 # COMMAND ----------
 
-# DBTITLE 1,Test Data
-#position = ["Center"]
-#college = ["University of North Carolina"]
-#draftTeam = ["Cleveland Cavaliers"]
-#draftRound = [1]
-#draftPick = []
-#draftYear = []
-
-# COMMAND ----------
-
 # DBTITLE 1,Test Class
 class test_NBA_Functions(unittest.TestCase): 
 
@@ -82,7 +72,23 @@ class test_NBA_Functions(unittest.TestCase):
     
     def test_digitDF(self): 
 
+        #Before digitExtract Function
+        test_df = position_cleaning()
+
+        test_df1 = test_df.select("draft_Pick").dtypes
+        test_df2 = test_df.select("draft_Round").dtypes
+
+        self.assertTrue(test_df1[0][1] == "string")
+        self.assertTrue(test_df2[0][1] == "string")
+
+        #After digitExtract Function
         result_df = digitExtract()
+
+        result_df1 = result_df.select("draft_Pick").dtypes
+        result_df2 = result_df.select("draft_Round").dtypes
+
+        self.assertTrue(result_df1[0][1] == "int")
+        self.assertTrue(result_df2[0][1] == "int")
 
     def test_joinTable(self): 
 
@@ -117,17 +123,88 @@ class test_NBA_Functions(unittest.TestCase):
         self.assertEqual(test_df.schema, result_df.schema)
         self.assertEqual(test_df_types,result_df_types)
 
-    @patch('__main__.position')
-    @patch('__main__.college')
-    @patch('__main__.draftTeam')
-    @patch('__main__.draftRound')
-    @patch('__main__.draftPick')
-    @patch('__main__.draftYear')
-    def test_Player_Check(self, mock_position, mock_college, mock_draft_Team, mock_draft_Round, mock_draft_Pick, mock_draft_Year):
+    def test_Player_Check(self):
 
-        #playerCheck.mock_position.return_value.self_assert_called_with()
-        result_df = playerCheck(mock_position, mock_college, mock_draft_Team, mock_draft_Round, mock_draft_Pick, mock_draft_Year)
+        #Position Parameter
+        result_df1 = playerCheck(position=["Center", "Forward"])
+        result_df2 = playerCheck(position=["Center"])
+        self.assertNotEqual(result_df1.collect(),result_df2.collect())
+        
+        #College Parameter
+        result_df3 = playerCheck(college=["University of Kentucky"])
+        result_df4 = playerCheck(college=["Duke University"])
+        self.assertNotEqual(result_df3.collect(),result_df4.collect())
 
+        #DraftTeam Parameter
+        result_df5 = playerCheck(draftTeam=["Chicago Bulls"])
+        result_df6 = playerCheck(draftTeam=["Golden State Warriors"])
+        self.assertNotEqual(result_df5.collect(),result_df6.collect())
+
+        #DraftRound Parameter
+        result_df7 = playerCheck(draftRound=[1])
+        result_df8 = playerCheck(draftRound=[2])
+        self.assertNotEqual(result_df7.collect(),result_df8.collect()) 
+
+        #DraftPick Parameter
+        result_df9 = playerCheck(draftPick=[1])
+        result_df10 = playerCheck(draftPick=[13])
+        self.assertNotEqual(result_df9.collect(),result_df10.collect()) 
+
+        #DraftYear Parameter
+        result_df11 = playerCheck(draftYear=[1998])
+        result_df12 = playerCheck(draftYear=[2016])
+        self.assertNotEqual(result_df11.collect(),result_df12.collect()) 
+
+    def test_avg_player_salary(self): 
+
+        test_df = playerCheck(draftTeam=["Chicago_Bulls"])
+        result_df = avgPlayerSalary(test_df)
+        result_columns = result_df.columns
+
+        self.assertTrue("player_Id" in result_columns)
+        self.assertTrue("count_Seasons" in result_columns)
+        self.assertTrue("sum_Salary" in result_columns)
+        self.assertTrue("avg_Salary" in result_columns)
+
+    def test_team_salary_per_year(self):
+
+        test_df = playerCheck(draftTeam=["Chicago_Bulls"])
+        result_df = teamSalaryPerYear(test_df)    
+        result_columns = result_df.columns
+
+        self.assertTrue("draft_Team" in result_columns)
+        self.assertTrue("draft_Year" in result_columns)
+        self.assertTrue("total_Salary" in result_columns)
+
+    def test_avg_salary_per_season(self): 
+
+        test_df = playerCheck(draftTeam=["Chicago_Bulls"])
+        result_df = avgSalaryBySeason(test_df)
+        result_columns = result_df.columns
+
+        self.assertTrue("season_Start" in result_columns)
+        self.assertTrue("avg_Salary_YR" in result_columns)
+
+    def test_avg_dollars_game(self): 
+
+        test_df = playerCheck(draftTeam=["Chicago_Bulls"])
+        result_df = avgDollarsGame(test_df)
+        result_columns = result_df.columns
+
+        self.assertTrue("player_Id" in result_columns)
+        self.assertTrue("count_Seasons" in result_columns)
+        self.assertTrue("sum_Salary" in result_columns)
+        self.assertTrue("avg_Salary" in result_columns)
+        self.assertTrue("avg_salary_per_g" in result_columns)
+
+    def test_avg_dollars_point(self): 
+
+        test_df = playerCheck(draftTeam=["Chicago_Bulls"])
+        result_df = avgDollarsPoint(test_df)
+        result_columns = result_df.columns
+
+        self.assertTrue("draft_Team" in result_columns)
+        self.assertTrue("avg_dollars_point" in result_columns)
 
 # COMMAND ----------
 
@@ -135,7 +212,3 @@ class test_NBA_Functions(unittest.TestCase):
 suite = unittest.TestLoader().loadTestsFromTestCase(test_NBA_Functions)
 runner = unittest.TextTestRunner(verbosity=2)
 runner.run(suite)
-
-# COMMAND ----------
-
-
