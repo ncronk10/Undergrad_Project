@@ -29,7 +29,7 @@ from pyspark.sql.types import IntegerType, StringType, StructField, StructType, 
 
 # COMMAND ----------
 
-# MAGIC %run ./NBA_Functions
+# MAGIC %run /Repos/ncronk10@gmail.com/Undergrad_Projet/NBA_Functions
 
 # COMMAND ----------
 
