@@ -11,6 +11,11 @@
 
 import pyspark.sql.functions as F
 
+from pyspark.context import SparkContext
+from pyspark.sql.session import SparkSession
+sc = SparkContext('local')
+spark = SparkSession(sc)
+
 from unittest.mock import Mock
 import unittest
 from unittest.mock import patch, MagicMock
