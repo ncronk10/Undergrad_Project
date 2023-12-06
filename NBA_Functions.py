@@ -1,4 +1,24 @@
 # Databricks notebook source
+# MAGIC %sh
+# MAGIC databricks secrets -h
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC databricks secrets list-scopes
+
+# COMMAND ----------
+
+# MAGIC %sh 
+# MAGIC https://databricks/python3/bin/databricks configure
+
+# COMMAND ----------
+
+# MAGIC %sh 
+# MAGIC databricks secrets list-scopes
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC # Library Imports
 
@@ -39,7 +59,7 @@ def playerTable():
         - playersDF: dataframe with columns renamed, casting double types to some columns, and dropping some columns and nulls  
     """
 
-    playersDF = (spark.table("default.players")
+    playersDF = (spark.read.csv("s3a://myresearchproject/players.csv", header=True)
         .withColumnRenamed("_id","player_Id")
         .withColumnRenamed("name","player_Name")
         .withColumnRenamed("career_AST", "career_Ast")
@@ -49,6 +69,8 @@ def playerTable():
         .withColumnRenamed("draft_year", "draft_Year")
         .withColumn("draft_Year", F.substring(F.col("draft_Year"), 0,4).cast(IntegerType()))
         .withColumn("career_G", F.col("career_G").cast(IntegerType()))
+        .withColumn("career_PTS", F.col("career_PTS").cast(DoubleType()))
+        .withColumn("career_Ast", F.col("career_Ast").cast(DoubleType()))
         .withColumn("career_TRB", F.col("career_TRB").cast(DoubleType()))
         .withColumn("career_FG%", when(F.col("career_FG%") == "-", 0.0).otherwise(F.col("career_FG%").cast(DoubleType())))
         .withColumn("career_FG3%", when(F.col("career_FG3%") == "-", 0.0).otherwise(F.col("career_FG3%").cast(DoubleType())))
@@ -79,7 +101,7 @@ def salaryTable():
         - salariesDF: dataframe with columns renamed, casting double types to some columns, and dropping some columns and nulls
     """
 
-    salariesDF = (spark.table("default.salaries")
+    salariesDF = (spark.read.csv("s3a://myresearchproject/salaries.csv", header=True)
             .withColumnRenamed("player_id", "player_Id")
             .withColumnRenamed("season_end", "season_End")
             .withColumnRenamed("season_start", "season_Start")

@@ -4,21 +4,18 @@
 
 # COMMAND ----------
 
-# MAGIC %sh 
-# MAGIC pip install mock
-
-# COMMAND ----------
-
 import pyspark.sql.functions as F
 
+<<<<<<< Updated upstream
 from pyspark.context import SparkContext
 from pyspark.sql.session import SparkSession
 sc = SparkContext('local')
 spark = SparkSession(sc)
 
 from unittest.mock import Mock
+=======
+>>>>>>> Stashed changes
 import unittest
-from unittest.mock import patch, MagicMock
 
 from pyspark.sql.window import Window
 from pyspark.sql import SparkSession
@@ -29,7 +26,17 @@ from pyspark.sql.types import IntegerType, StringType, StructField, StructType, 
 
 # COMMAND ----------
 
+<<<<<<< Updated upstream
 # MAGIC %run /Repos/ncronk10@gmail.com/Undergrad_Projet/NBA_Functions
+=======
+# MAGIC %run /Repos/ncronk10@gmail.com/Undergrad_Project/NBA_Functions
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC # Unittests
+>>>>>>> Stashed changes
 
 # COMMAND ----------
 
@@ -112,9 +119,9 @@ class test_NBA_Functions(unittest.TestCase):
                     StructField("draft_Year", IntegerType(), True),
                     StructField("player_Name", StringType(), True),
                     StructField("position", StringType(), False), 
-                    StructField("salary", LongType(), True),
-                    StructField("season_End", LongType(), True),
-                    StructField("season_Start", LongType(), True)
+                    StructField("salary", StringType(), True),
+                    StructField("season_End", StringType(), True),
+                    StructField("season_Start", StringType(), True)
                     ]
         
         table_schema = StructType(field_type)
@@ -213,7 +220,18 @@ class test_NBA_Functions(unittest.TestCase):
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC # Output
+
+# COMMAND ----------
+
 # DBTITLE 1,Execute Test Class
 suite = unittest.TestLoader().loadTestsFromTestCase(test_NBA_Functions)
-runner = unittest.TextTestRunner(verbosity=2)
-runner.run(suite)
+result = unittest.TextTestRunner().run(suite)
+
+# COMMAND ----------
+
+if result.wasSuccessful():
+    print("All tests passed successfully!")
+else: 
+    raise Exception("One or more tests did not successfully pass. Please read log files to know more.")
