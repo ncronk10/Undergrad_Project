@@ -6,15 +6,6 @@
 
 import pyspark.sql.functions as F
 
-<<<<<<< Updated upstream
-from pyspark.context import SparkContext
-from pyspark.sql.session import SparkSession
-sc = SparkContext('local')
-spark = SparkSession(sc)
-
-from unittest.mock import Mock
-=======
->>>>>>> Stashed changes
 import unittest
 
 from pyspark.sql.window import Window
@@ -26,9 +17,6 @@ from pyspark.sql.types import IntegerType, StringType, StructField, StructType, 
 
 # COMMAND ----------
 
-<<<<<<< Updated upstream
-# MAGIC %run /Repos/ncronk10@gmail.com/Undergrad_Projet/NBA_Functions
-=======
 # MAGIC %run /Repos/ncronk10@gmail.com/Undergrad_Project/NBA_Functions
 
 # COMMAND ----------
@@ -36,7 +24,6 @@ from pyspark.sql.types import IntegerType, StringType, StructField, StructType, 
 # MAGIC %md
 # MAGIC
 # MAGIC # Unittests
->>>>>>> Stashed changes
 
 # COMMAND ----------
 
