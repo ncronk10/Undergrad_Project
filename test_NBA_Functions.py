@@ -49,7 +49,7 @@ class test_NBA_Functions(unittest.TestCase):
         self.assertTrue("draft_Round" in listColumns)
         self.assertTrue("draft_Year" in listColumns)
         self.assertTrue("player_Name" in listColumns)
-        self.assertTrue("position" in listColumns)
+        self.assertFalse("position" in listColumns)
 
     def test_salaryTable(self):
 
