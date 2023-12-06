@@ -31,7 +31,7 @@ jobs:
         export DATABRICKS_HOST=https://dbc-6cad2402-4428.cloud.databricks.com/?o=930183227334575
         export DATABRICKS_TOKEN=dapi387abdaef68c47d6558049555f7450a7
         export DATABRICKS_JOB_PATH=/Workflows/Jobs/62667569273248
-        export DATABRICKS_CLUSTER_ID=0922-192135-slizctka # Provide your cluster ID
+        export DATABRICKS_CLUSTER_ID=0922-192135-slizctka
         # Trigger Databricks Job using REST API with an existing cluster
         databricks runs submit --json "{
           \"existing_cluster_id\": \"$DATABRICKS_CLUSTER_ID\",
@@ -49,6 +49,5 @@ jobs:
     steps:
     - name: Deploy Changes to Pull Request
       run: |
-        # Add deployment steps here, such as deploying code changes to your environment
         echo "Deploying changes to pull request"
   # Add additional steps or jobs as needed
