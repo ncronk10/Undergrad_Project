@@ -1,35 +1,10 @@
 # Databricks notebook source
-# MAGIC %sh
-# MAGIC databricks secrets -h
-
-# COMMAND ----------
-
-# MAGIC %sh
-# MAGIC databricks secrets list-scopes
-
-# COMMAND ----------
-
-# MAGIC %sh 
-# MAGIC https://databricks/python3/bin/databricks configure
-
-# COMMAND ----------
-
-# MAGIC %sh 
-# MAGIC databricks secrets list-scopes
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC # Library Imports
 
 # COMMAND ----------
 
 import pyspark.sql.functions as F
-
-from pyspark.context import SparkContext
-from pyspark.sql.session import SparkSession
-sc = SparkContext('local')
-spark = SparkSession(sc)
 
 from pyspark.sql.window import Window
 from pyspark.sql import SparkSession
