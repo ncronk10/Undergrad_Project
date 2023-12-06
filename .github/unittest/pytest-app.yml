@@ -2,11 +2,12 @@ name: Databricks Job and Deploy
 
 on:
   push:
-    branches:
-      - main 
-  commit: 
-    branches: 
-      - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
   run-databricks-job:
