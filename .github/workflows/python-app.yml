@@ -1,0 +1,54 @@
+name: Python Application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  run-databricks-job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.10 
+
+    - name: Install Dependencies
+      run: |
+        pip install databricks-cli
+    - name: Run Databricks Job on Existing Cluster
+      id: databricks-job
+      run: |
+        export DATABRICKS_HOST=https://dbc-6cad2402-4428.cloud.databricks.com/?o=930183227334575
+        export DATABRICKS_TOKEN=dapi387abdaef68c47d6558049555f7450a7
+        export DATABRICKS_JOB_PATH=/Workflows/Jobs/62667569273248
+        export DATABRICKS_CLUSTER_ID=0922-192135-slizctka # Provide your cluster ID
+        # Trigger Databricks Job using REST API with an existing cluster
+        databricks runs submit --json "{
+          \"existing_cluster_id\": \"$DATABRICKS_CLUSTER_ID\",
+          \"notebook_task\": {
+            \"notebook_path\": \"$DATABRICKS_JOB_PATH\"
+          }
+        }"
+        # Check the exit status of the job and store it as an output
+        echo ::set-output name=job-status::$(echo $?)
+  deploy-on-success:
+    needs: run-databricks-job
+    runs-on: ubuntu-latest
+    if: ${{ needs.run-databricks-job.outputs.job-status == 0 }}
+
+    steps:
+    - name: Deploy Changes to Pull Request
+      run: |
+        # Add deployment steps here, such as deploying code changes to your environment
+        echo "Deploying changes to pull request"
+  # Add additional steps or jobs as needed
