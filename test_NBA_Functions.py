@@ -202,7 +202,7 @@ class test_NBA_Functions(unittest.TestCase):
         result_df = avgDollarsPoint(test_df)
         result_columns = result_df.columns
 
-        self.assertFalse("draft_Team" in result_columns)
+        self.assertTrue("draft_Team" in result_columns)
         self.assertTrue("avg_dollars_point" in result_columns)
 
 # COMMAND ----------
