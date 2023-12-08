@@ -31,5 +31,4 @@ jobs:
       id: databricks-job
       run: |
         export DATABRICKS_HOST=https://dbc-6cad2402-4428.cloud.databricks.com
-        #export DATABRICKS_TOKEN=dapi387abdaef68c47d6558049555f7450a7 # move this into github secrets
         databricks jobs run-now --job-id 62667569273248
