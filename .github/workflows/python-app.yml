@@ -31,14 +31,3 @@ jobs:
         export DATABRICKS_HOST=https://dbc-6cad2402-4428.cloud.databricks.com
         export DATABRICKS_TOKEN=dapi387abdaef68c47d6558049555f7450a7
         databricks jobs run-now --job-id 62667569273248
-        echo ::set-output name=job-status::$(echo $?)
-  deploy-on-success:
-    needs: run-databricks-job
-    runs-on: ubuntu-latest
-    if: ${{ needs.run-databricks-job.outputs.job-status == 0 }}
-
-    steps:
-    - name: Deploy Changes to Pull Request
-      run: |
-        # Add deployment steps here, such as deploying code changes to your environment
-        echo "Deploying changes to pull request"
