@@ -32,3 +32,4 @@ jobs:
       run: |
         export DATABRICKS_HOST=https://dbc-6cad2402-4428.cloud.databricks.com
         databricks jobs run-now --job-id 62667569273248
+        databricks jobs list --output JSON
