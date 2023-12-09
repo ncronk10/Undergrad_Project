@@ -32,3 +32,16 @@ jobs:
       run: |
         export DATABRICKS_HOST=https://dbc-6cad2402-4428.cloud.databricks.com
         databricks jobs run-now --job-id 62667569273248
+        
+        run_output=$(databricks runs submit --job-id 62667569273248 --json-file job-parameters.json)
+        run_id=$(echo "$run_output" | jq -r '.run_id')
+
+    - name: Check Databricks Job Status
+      run: |
+          status=$(databricks runs get --run-id $run_id --query ExecutionStatus)
+          
+          if [ "$status" != "SUCCESS" ]; then
+            echo "Databricks job failed."
+            exit 1
+          fi
+        
