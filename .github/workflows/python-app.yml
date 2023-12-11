@@ -32,3 +32,21 @@ jobs:
       run: |
         export DATABRICKS_HOST=https://dbc-6cad2402-4428.cloud.databricks.com
         databricks jobs run-now --job-id 62667569273248
+
+        run_info=$(databricks jobs run-now --job-id 62667569273248)
+        run_id=$(echo $run_info | jq -r '.run_id')
+        echo "Job run ID: $run_id"
+        
+        job_status="UNKNOWN"
+        while [[ $job_status == "UNKNOWN" || $job_status == "RUNNING" || $job_status == "PENDING" ]]; do
+            sleep 15
+            job_status=$(databricks runs get --run-id $run_id | jq -r '.state.life_cycle_state')
+        done
+        
+        result_state=$(databricks runs get --run-id $run_id | jq -r '.state.result_state')
+        
+        if [[ $result_state != "SUCCESS" ]]; then
+            echo "Job $run_id failed"
+        else
+            echo "Job $run_id has succeeded" 
+        fi 
