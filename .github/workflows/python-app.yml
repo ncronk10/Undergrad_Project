@@ -32,8 +32,6 @@ jobs:
       run: |
         export DATABRICKS_HOST=https://dbc-6cad2402-4428.cloud.databricks.com
         
-        databricks jobs configure --version=2.1
-        
         run_info=$(databricks jobs run-now --job-id 62667569273248)
         run_id=$(echo $run_info | jq -r '.run_id')
         
