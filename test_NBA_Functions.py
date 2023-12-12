@@ -64,7 +64,7 @@ class test_NBA_Functions(unittest.TestCase):
     def test_positionCleaning(self):
 
         result_df = position_cleaning()
-        expected_positions = ["Shooting_Guard", "Small Forward", "Guard", "Point Guard", "Power Forward", "Forward", "Center"]
+        expected_positions = ["Shooting Guard", "Small Forward", "Guard", "Point Guard", "Power Forward", "Forward", "Center"]
     
         test_df = result_df.filter(F.col("position").isin(expected_positions))
         self.assertTrue(test_df)
