@@ -36,5 +36,5 @@ display(avgGameDF)
 # DBTITLE 1,Area Chart for Average Dollars Made Per Point Scored
 df = playerCheck()
 
-avgPointDF = avgDollarsPoint(df) #Change draft year to date (year)
+avgPointDF = avgDollarsPoint(df)
 display(avgPointDF)
