@@ -50,7 +50,7 @@ def playerTable():
         .withColumn("career_FG%", when(F.col("career_FG%") == "-", 0.0).otherwise(F.col("career_FG%").cast(DoubleType())))
         .withColumn("career_FG3%", when(F.col("career_FG3%") == "-", 0.0).otherwise(F.col("career_FG3%").cast(DoubleType())))
         .withColumn("career_FT%", when(F.col("career_FT%") == "-", 0.0).otherwise(F.col("career_FT%").cast(DoubleType())))
-        .drop("career_eFG%","highSchool", "shoots", "career_WS", "career_PER", "height", "weight", "birthDate", "birthPlace", "draft_Year")
+        .drop("career_eFG%","highSchool", "shoots", "career_WS", "career_PER", "height", "weight", "birthDate", "birthPlace")
         .dropna()
     )
     
